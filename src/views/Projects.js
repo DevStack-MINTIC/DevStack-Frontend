@@ -44,7 +44,7 @@ const tableIcons = {
 };
 
 
-const Products = () => {
+const Projects = () => {
   const { setIsLoading } = useAuth();
   const [dataProducts, setDataProducts] = useState([]);
   
@@ -97,7 +97,7 @@ const Products = () => {
 
   return (
     <div className="container">
-      <h1 className="my-3">Productos</h1>
+      <h1 className="my-3">Proyectos</h1>
       <MaterialTable
         title=""
         columns={columns}
@@ -122,4 +122,4 @@ const Products = () => {
   );
 };
 
-export default Products;
+export default Projects;

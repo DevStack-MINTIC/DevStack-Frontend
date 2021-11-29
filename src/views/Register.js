@@ -3,15 +3,15 @@ import { useHistory } from "react-router";
 
 import useAuth from "../hooks/useAuth";
 
-const Login = () => {
+const Register = () => {
   const history = useHistory();
   const { login, error } = useAuth();
 
   return (
     <section>
-      Login
+      Register
     </section>
   );
 };
 
-export default Login;
+export default Register;

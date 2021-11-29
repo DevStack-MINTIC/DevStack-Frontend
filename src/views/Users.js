@@ -29,7 +29,7 @@ const tableIcons = {
   SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} />),
 };
 
-const UserManagement = () => {
+const Users = () => {
 
   const { setIsLoading } = useAuth();
   const [dataUsers, setDataUsers] = useState([]);
@@ -105,4 +105,4 @@ const UserManagement = () => {
   ;
 };
 
-export default UserManagement;
+export default Users;

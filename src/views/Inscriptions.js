@@ -30,7 +30,7 @@ const tableIcons = {
   SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} />),
 };
 
-const Sales = () => {
+const Inscriptions = () => {
   const [dataProducts, setDataProducts] = useState([]);
   const [customerIdNumber, setCustomerIdNumber] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -104,26 +104,8 @@ const Sales = () => {
 
   return (
     <div className="container">
-      <div class="my-3 row">
-        <div class="col">
-          <label>Documento del cliente</label>
-          <input
-            type="text"
-            class="form-control"
-            value={customerIdNumber}
-            onChange={(e) => setCustomerIdNumber(e.target.value)}
-          />
-        </div>
-        <div class="col">
-          <label>Nombre del cliente</label>
-          <input
-            type="text"
-            class="form-control"
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-          />
-        </div>
-      </div>
+      <h1 className="my-3">Inscripciones</h1>
+
       <MaterialTable
         title=""
         columns={columns}
@@ -139,23 +121,8 @@ const Sales = () => {
           actionsColumnIndex: -1,
         }}
       />
-      <div className="d-flex justify-content-between my-5">
-        <h2>
-          Total:{" "}
-          {dataProducts?.reduce((total, product) => {
-            return total + product.value * product.amount;
-          }, 0)}
-        </h2>
-        <button
-          disabled={!isSaleValid}
-          className="btn btn-success px-5"
-          onClick={handleCreateSale}
-        >
-          Generar venta
-        </button>
-      </div>
     </div>
   );
 };
 
-export default Sales;
+export default Inscriptions;

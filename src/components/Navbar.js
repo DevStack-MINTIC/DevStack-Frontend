@@ -4,15 +4,15 @@ import useAuth from "../hooks/useAuth";
 
 const Navbar = () => {
 
-  const { logout, isAdmin } = useAuth();
+  // const { logout, isAdmin } = useAuth();
 
   return (
     <nav className="navbar navbar-expand-md navbar-dark bg-dark">
       <div className="container-fluid">
         <div className="nav-item">
-          <Link className="navbar-brand" to="/">
+          {/* <Link className="navbar-brand" to="*">
             Devware Store
-          </Link>
+          </Link> */}
         </div>
         <button
           className="navbar-toggler"
@@ -28,30 +28,45 @@ const Navbar = () => {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav">
             <li className="nav-item">
-              <Link to="/" className="nav-link">
-                Vender
+              <Link to="/login" className="nav-link">
+                Login
               </Link>
             </li>
             <li className="nav-item">
-              <Link to="/dashboard" className="nav-link">
-                Ventas
+              <Link to="/register" className="nav-link">
+                Registro
               </Link>
             </li>
-            {isAdmin() && (
-            <>
+            <li className="nav-item">
+              <Link to="/users" className="nav-link">
+                Usuarios
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link to="/update-user" className="nav-link">
+                Actualizar Usuario
+              </Link>
+            </li>
+            {/* {isAdmin() && (
+            <> */}
               <li className="nav-item">
-                <Link to="/products" className="nav-link">
-                  Productos
+                <Link to="/projects" className="nav-link">
+                  Proyectos
                 </Link>
               </li>
               <li className="nav-item">
-                <Link to="/user-management" className="nav-link">
-                  Usuarios
+                <Link to="/project-info" className="nav-link">
+                  Información del Proyecto
                 </Link>
               </li>
-            </>
-            )}
-            <button className="btn btn-danger mx-3" onClick={logout}>
+            {/* </>
+            )} */}
+            <li className="nav-item">
+              <Link to="/inscriptions" className="nav-link">
+                Inscripciones
+              </Link>
+            </li>
+            <button className="btn btn-danger mx-3" onClick={() => {}}>
               Cerrar Sesión
             </button>
           </ul>
