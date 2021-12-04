@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Switch, BrowserRouter, Route, Redirect } from "react-router-dom";
+import MaterialTable from 'material-table'
 
 import Navbar from "./components/Navbar";
 import Login from "./views/Login";
@@ -16,8 +17,16 @@ import useAuth from "./hooks/useAuth";
 import Loader from "./components/Loader/Loader";
 
 const App = () => {
-  // const { user, isLoading } = useAuth();
-  
+  // const { user, sLoading } = useAuth();
+  const [tableData, setTableData] = useState([])
+  const columns = [
+    {title : "Proyecto", field: "proyecto"},
+    {title : "Estudiante", field: "estudiante"},
+    {title : "Estado ", field: "estado"},
+    {title : "Fecha", field: "fecha"},
+    {title : "Fecha", field: "fecha2"},
+    {title : "Acciones", field: "acciones"},
+  ]
   return (
     <div>
       <BrowserRouter>
@@ -37,6 +46,7 @@ const App = () => {
         </Switch>
         {/* <Loader isShowLoading={isLoading} /> */}
       </BrowserRouter>
+    <MaterialTable columns = {columns} data = {tableData } />
     </div>
   );
 };
