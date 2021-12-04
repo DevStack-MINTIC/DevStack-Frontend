@@ -16,7 +16,7 @@ import useAuth from "./hooks/useAuth";
 import Loader from "./components/Loader/Loader";
 
 const App = () => {
-  // const { user, isLoading } = useAuth();
+  // const { user, sLoading } = useAuth();
   
   return (
     <div>
