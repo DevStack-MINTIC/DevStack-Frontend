@@ -12,11 +12,11 @@ import Inscriptions from "./views/Inscriptions";
 
 // import PrivateRoute from "./routes/PrivateRoute";
 import PublicRoute from "./routes/PublicRoute";
-// import useAuth from "./hooks/useAuth";
-// import Loader from "./components/Loader/Loader";
+import useAuth from "./hooks/useAuth";
+import Loader from "./components/Loader/Loader";
 
 const App = () => {
-  // const { user, sLoading } = useAuth();
+  const { isLoading } = useAuth();
   
   return (
     <div>
@@ -35,7 +35,7 @@ const App = () => {
             <Redirect to="/" />
           </Route>
         </Switch>
-        {/* <Loader isShowLoading={isLoading} /> */}
+        <Loader isShowLoading={isLoading} />
       </BrowserRouter>
     </div>
   );

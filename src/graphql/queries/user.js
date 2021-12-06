@@ -8,7 +8,7 @@ export const GET_USERS = gql`
       identificationNumber
       fullName
       role
-      status
+      state
     }
   }
 `;
@@ -21,7 +21,7 @@ export const GET_USER_BY_ID = gql`
       identificationNumber
       fullName
       role
-      status
+      state
     }
   }
 `;

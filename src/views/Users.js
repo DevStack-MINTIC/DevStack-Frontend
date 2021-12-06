@@ -1,4 +1,5 @@
 import React, { useEffect, useState, forwardRef } from "react";
+import { useQuery } from "@apollo/client";
 
 import MaterialTable from "material-table";
 import ArrowDownward from "@material-ui/icons/ArrowDownward";
@@ -12,7 +13,7 @@ import LastPage from "@material-ui/icons/LastPage";
 import Search from "@material-ui/icons/Search";
 
 import useAuth from "../hooks/useAuth"
-import { getUsers, updateUserById } from "../services/users";
+import { GET_USERS } from "../graphql/queries/user";
 
 const tableIcons = {
   Check: forwardRef((props, ref) => <Check {...props} ref={ref} />),
@@ -31,35 +32,19 @@ const tableIcons = {
 
 const Users = () => {
 
-  const { setIsLoading } = useAuth();
-  const [dataUsers, setDataUsers] = useState([]);
-
-  useEffect(() => {
-    setIsLoading(true);
-    getUsers().then((data) => {
-      setDataUsers(data?.users);
-    }).finally(() => setIsLoading(false));
-  }, []);
+  const { setIsLoading, isAdmin } = useAuth();
+  const [users, setUsers] = useState([]);
+  const { loading: loadingUsers, data: dataUsers } = useQuery(GET_USERS);
   
   const columns = [
-    { title: "uid", 
-      field: "uid", 
-      hidden: true, 
-      editable: "never" },
-      
-    { title: "Nombre Completo", 
-      field: "fullname", 
-      editable: "never" },
-    { title: "Documento de Identidad", 
-      field: "IDNumber", 
-      editable: "never" },
-    { title: "Email", 
-      field: "email", 
-      editable: "never" },
+    { title: "_id", field: "_id", hidden: true, editable: "never" },
+    { title: "Nombre Completo", field: "fullName", editable: "never" },
+    { title: "Documento de Identidad", field: "identificationNumber", editable: "never" },
+    { title: "Email", field: "email", editable: "never" },
     { 
       title: "Rol", 
       field: "role", 
-      editable: "onUpdate",
+      editable: "never",
       lookup: {
         ADMIN: "Administrador",
         LEADER: "Lider",
@@ -73,49 +58,61 @@ const Users = () => {
       lookup: {
         PENDING: "Pendiente",
         AUTHORIZED: "Autorizado",
-        NO_AUTHORIZED: "No Autorizado",
+        ...(isAdmin() && { NOT_AUTHORIZED: "No Autorizado"})
       },
     },
   ];
 
   const handleRowUpdate = (newData, oldData, resolve) => {
-    setIsLoading(true);
-    updateUserById({
-      uid: newData.uid,
-      state: newData.state,
-      role: newData.state,
-    }).then(() => {
-      const dataUpdate = [...dataUsers];
-      const index = oldData.tableData.id;
-      dataUpdate[index] = newData;
-      setDataUsers([...dataUpdate]);
-      resolve();
-    }).finally(() => setIsLoading(false));
+    // setIsLoading(loadingUsers);
+    // updateUserById({
+    //   uid: newData.uid,
+    //   state: newData.state,
+    //   role: newData.state,
+    // }).then(() => {
+    //   const dataUpdate = [...dataUsers];
+    //   const index = oldData.tableData.id;
+    //   dataUpdate[index] = newData;
+    //   setDataUsers([...dataUpdate]);
+    //   resolve();
+    // }).finally(() => setIsLoading(loadingUsers));
   };
 
-  return <div className="container">
+  useEffect(() => {
+    const usersMap = dataUsers?.getUsers?.map((user) => {
+      const {__typename, ...restUser} = user;
+      return restUser;
+    });
+    setUsers(usersMap);
+  }, [dataUsers]);
+
+  useEffect(() => {
+    setIsLoading(loadingUsers);
+  }, [loadingUsers, setIsLoading]);
+
+  return (
+    <div className="container">
       <h1 className="my-3">Usuarios</h1>
-      <MaterialTable
-        title=""
-        columns={columns}
-        data={dataUsers}
-        icons={tableIcons}
-        editable={{
-          onRowUpdate: (newData, oldData) =>
-            new Promise((resolve) => {
-              handleRowUpdate(newData, oldData, resolve);
-            }),
-        }}
-        options={{
-          actionsColumnIndex: -1,
-          sorting: true,
-        }}
-      />
-
-        
-
+      {!loadingUsers && (
+        <MaterialTable
+          title=""
+          columns={columns}
+          data={users}
+          icons={tableIcons}
+          editable={{
+            onRowUpdate: (newData, oldData) =>
+              new Promise((resolve) => {
+                handleRowUpdate(newData, oldData, resolve);
+              }),
+          }}
+          options={{
+            actionsColumnIndex: -1,
+            sorting: true,
+          }}
+        />
+      )}
     </div>
-  ;
+  );
 };
 
 export default Users;
