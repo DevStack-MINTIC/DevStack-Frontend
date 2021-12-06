@@ -42,15 +42,28 @@ const Users = () => {
   }, []);
   
   const columns = [
-    { title: "uid", field: "uid", hidden: true, editable: "never" },
-    { title: "Email", field: "email", editable: "never" },
+    { title: "uid", 
+      field: "uid", 
+      hidden: true, 
+      editable: "never" },
+      
+    { title: "Nombre Completo", 
+      field: "fullname", 
+      editable: "never" },
+    { title: "Documento de Identidad", 
+      field: "IDNumber", 
+      editable: "never" },
+    { title: "Email", 
+      field: "email", 
+      editable: "never" },
     { 
       title: "Rol", 
       field: "role", 
       editable: "onUpdate",
       lookup: {
         ADMIN: "Administrador",
-        SELLER: "Vendedor"
+        LEADER: "Lider",
+        STUDENT: "Estudiante"
       },
     },
     {

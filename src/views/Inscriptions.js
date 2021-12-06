@@ -32,26 +32,15 @@ const tableIcons = {
 
 const Inscriptions = () => {
   const [dataProducts, setDataProducts] = useState([]);
-  const [customerIdNumber, setCustomerIdNumber] = useState("");
-  const [customerName, setCustomerName] = useState("");
   const { user, setIsLoading } = useAuth();
 
-  const isSaleValid =
-    dataProducts?.some((product) => product.amount > 0) &&
-    !!customerIdNumber &&
-    !!customerName;
-
   const columns = [
-    { title: "uid", field: "uid", hidden: true, editable: "never" },
-    { title: "Nombre del producto", field: "name", editable: "never" },
-    { title: "Precio", field: "value", editable: "never" },
-    {
-      title: "Cantidad",
-      field: "amount",
-      editable: "onUpdate",
-      type: "numeric",
-      validate: (rowData) => rowData.amount >= 0,
-    },
+    {title : "Proyecto", field: "proyecto"},
+    {title : "Estudiante", field: "estudiante"},
+    {title : "Estado ", field: "estado"},
+    {title : "Fecha", field: "fecha"},
+    {title : "Fecha", field: "fecha2"},
+    {title : "Acciones", field: "acciones"},
   ];
 
   const handleRowUpdate = (newData, oldData, resolve) => {
@@ -72,12 +61,8 @@ const Inscriptions = () => {
       });
     createSale({
       products,
-      customerIdNumber,
-      customerName,
       salesManager: user.email,
     }).then((response) => {
-      setCustomerIdNumber("");
-      setCustomerName("");
       getAllProducts();
     }).finally(() => setIsLoading(false));
   };
