@@ -4,7 +4,7 @@ import useAuth from "../hooks/useAuth";
 
 const Navbar = () => {
 
-  // const { logout, isAdmin } = useAuth();
+  const { login, isLogin } = useAuth();
 
   return (
     <nav className="navbar navbar-expand-md navbar-dark bg-dark">
@@ -66,8 +66,8 @@ const Navbar = () => {
                 Inscripciones
               </Link>
             </li>
-            <button className="btn btn-danger mx-3" onClick={() => {}}>
-              Cerrar Sesión
+            <button className="btn btn-danger mx-3" onClick={() => login()}>
+              Iniciar sesión
             </button>
           </ul>
         </div>

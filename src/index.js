@@ -14,12 +14,7 @@ require('dotenv').config();
 
 const client = new ApolloClient({
   uri: process.env.REACT_APP_BACKEND,
-  cache: new InMemoryCache(),
-  headers: {
-    authorization: localStorage.getItem("token") 
-      ? `Bearer ${localStorage.getItem("token")}` 
-      : "",
-  }
+  cache: new InMemoryCache()
 });
 
 ReactDOM.render(

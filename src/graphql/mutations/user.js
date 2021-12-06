@@ -14,8 +14,8 @@ export const UPDATE_USER_STATUS = gql`
 
 export const UPDATE_USER = gql`
   mutation UpdateUser(
-    $fullName: String!, 
-    $password: String!
+    $fullName: String, 
+    $password: String
   ) {
     updateUser(
       fullName: $fullName, 

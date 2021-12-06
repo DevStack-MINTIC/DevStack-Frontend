@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Switch, BrowserRouter, Route, Redirect } from "react-router-dom";
 
 import Navbar from "./components/Navbar";

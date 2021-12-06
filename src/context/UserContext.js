@@ -5,21 +5,21 @@ import { LOGIN, REGISTER } from "../graphql/mutations/auth";
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [login, { loading: loadingLogin, error: errorLogin }] = useMutation(LOGIN);
-  const [register, { loading: loadingRegister, error: errorRegister }] = useMutation(REGISTER);
+  const [loginMutation, { loading: loadingLogin, error: errorLogin }] = useMutation(LOGIN);
+  const [registerMutation, { loading: loadingRegister, error: errorRegister }] = useMutation(REGISTER);
 
-  const [user, setUser] = useState(JSON.parse(sessionStorage.getItem("user")));
+  const [userSession, setUserSession] = useState(JSON.parse(sessionStorage.getItem("user")) || null);
   const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(loadingLogin || loadingRegister || false);
-
-  useEffect(() => {
-    // setError();
-    console.log("errorLogin", errorLogin);
-    console.log("errorRegister", errorRegister);
-  }, [errorLogin, errorRegister])
-
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // useEffect(() => {
+  //   // setError();
+  //   console.log("errorLogin", errorLogin);
+  //   console.log("errorRegister", errorRegister);
+  // }, [errorLogin, errorRegister]);
+    
   const contextValue = {
-    user,
+    userSession,
     error,
     isLoading,
     setIsLoading,
@@ -31,7 +31,7 @@ export const UserProvider = ({ children }) => {
       role
     }) => {
       setError(null);
-      const responseRegister = await register({
+      const responseRegister = await registerMutation({
         variables: {
           email,
           identificationNumber, 
@@ -41,33 +41,31 @@ export const UserProvider = ({ children }) => {
         }
       });
       const { token, user } = JSON.parse(responseRegister);
-      setUser(JSON.stringify(user));
       sessionStorage.setItem("token", token);
       sessionStorage.setItem("user", JSON.stringify(user));
     },
     login: async () => {
       setError(null);
-      const responseLogin = await login({
+      const responseLogin = await loginMutation({
         variables: {  
           email: "felipelop254@gmail.com",
           password: "qwerty123"
         }
       });
-      const { token, user } = JSON.parse(responseLogin);
-      setUser(JSON.stringify(user));
+      const { token, user } = JSON.parse(responseLogin.data.login);
+      setUserSession(user);
       sessionStorage.setItem("token", token);
       sessionStorage.setItem("user", JSON.stringify(user));
     },
     logout: () => {
-      setUser(null);
       setError(null);
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("user");
     },
-    isLogin: () => !!user,
-    isAdmin: () => user?.role === "ADMIN",
-    isLeader: () => user?.role === "LEADER",
-    isStudent: () => user?.role === "STUDENT",
+    isLogin: () => !!userSession,
+    isAdmin: () => userSession?.role === "ADMIN",
+    isLeader: () => userSession?.role === "LEADER",
+    isStudent: () => userSession?.role === "STUDENT",
   };
 
   return (
