@@ -25,7 +25,7 @@ const Navbar = () => {
         >
           <span className="navbar-toggler-icon"></span>
         </button>
-        <div className="collapse navbar-collapse" id="navbarNav">
+        <div className="collapse navbar-collapse justify-content-between" id="navbarNav">
           <ul className="navbar-nav">
             <li className="nav-item">
               <Link to="/login" className="nav-link">
@@ -40,11 +40,6 @@ const Navbar = () => {
             <li className="nav-item">
               <Link to="/users" className="nav-link">
                 Usuarios
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/update-user" className="nav-link">
-                Actualizar Usuario
               </Link>
             </li>
             {/* {isAdmin() && (
@@ -66,10 +61,15 @@ const Navbar = () => {
                 Inscripciones
               </Link>
             </li>
-            <button className="btn btn-danger mx-3" onClick={() => login()}>
+            <button className="btn btn-danger mb-3 mb-md-0 mx-3" onClick={() => login()}>
               Iniciar sesión
             </button>
           </ul>
+          <div className="d-flex justify-content-center">
+            <Link className="btn btn-primary text-center" to="/update-user">
+              Mi perfil
+            </Link>
+          </div>
         </div>
       </div>
     </nav>
