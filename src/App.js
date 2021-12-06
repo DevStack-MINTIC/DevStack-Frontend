@@ -10,10 +10,10 @@ import Projects from "./views/Projects";
 import ProjectInfo from "./views/ProjectInfo";
 import Inscriptions from "./views/Inscriptions";
 
-import PrivateRoute from "./routes/PrivateRoute";
+// import PrivateRoute from "./routes/PrivateRoute";
 import PublicRoute from "./routes/PublicRoute";
-import useAuth from "./hooks/useAuth";
-import Loader from "./components/Loader/Loader";
+// import useAuth from "./hooks/useAuth";
+// import Loader from "./components/Loader/Loader";
 
 const App = () => {
   // const { user, sLoading } = useAuth();
