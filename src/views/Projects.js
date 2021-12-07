@@ -1,7 +1,7 @@
 import React, { useEffect, useState, forwardRef } from "react";
 import { useQuery } from "@apollo/client";
 
-import MaterialTable, { MTableToolbar } from "material-table";
+import MaterialTable from "material-table";
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
 import Check from '@material-ui/icons/Check';
@@ -22,7 +22,6 @@ import Visibility from '@material-ui/icons/Visibility';
 import useAuth from "../hooks/useAuth"
 
 import { GET_PROJECTS } from "../graphql/queries/project";
-import { Link } from "react-router-dom";
 import ProjectInfo from "./ProjectInfo";
 
 const tableIcons = {

@@ -1,10 +1,9 @@
 import React from "react";
-import { useHistory } from "react-router-dom";
 import { Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 
 const Navbar = () => {
-  const { logout, isStudent, isLeader} = useAuth();
+  const { logout, isStudent, isLeader } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -37,11 +36,6 @@ const Navbar = () => {
                 Proyectos
               </Link>
             </li>
-            <li className="nav-item">
-              <Link to="/project-info" className="nav-link">
-                Información del Proyecto
-              </Link>
-            </li>
             {!isStudent() && (
               <li className="nav-item">
                 <Link to="/users" className="nav-link">
@@ -49,13 +43,13 @@ const Navbar = () => {
                 </Link>
               </li>
             )}
-            {/* {isLeader() && ( */}
+            {isLeader() && (
               <li className="nav-item">
                 <Link to="/inscriptions" className="nav-link">
                   Inscripciones
                 </Link>
               </li>
-            {/* )} */}
+            )}
             <button className="btn btn-danger mb-3 mb-md-0 mx-3" onClick={handleLogout}>
               Cerrar sesión
             </button>

@@ -7,7 +7,6 @@ import Register from "./views/Register";
 import Users from "./views/Users";
 import UpdateUser from "./views/UpdateUser";
 import Projects from "./views/Projects";
-import ProjectInfo from "./views/ProjectInfo";
 import Inscriptions from "./views/Inscriptions";
 
 import PrivateRoute from "./routes/PrivateRoute";
@@ -34,7 +33,6 @@ const App = () => {
           <PrivateRoute exact path="/users" component={Users} />
           <PrivateRoute exact path="/update-user" component={UpdateUser} />
           <PrivateRoute exact path="/projects" component={Projects} />
-          <PrivateRoute exact path="/project-info" component={ProjectInfo} />
           <PrivateRoute exact path="/inscriptions" component={Inscriptions} />
           <Route path="*">
             <Redirect to="/login" />
