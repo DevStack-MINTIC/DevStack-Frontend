@@ -10,20 +10,18 @@ import "./ProjectInfo.scss";
 import { format, fromUnixTime } from "date-fns";
 import { es } from "date-fns/locale";
 
-const ProjectInfo = () => {
-  // const history = useHistory();
-  // const { isLoading, setIsLoading } = useAuth();
+const ProjectInfo = ({ projectId, onClose }) => {
 
   const { loading: loadingProject, data: dataProject } = useQuery(
     GET_PROJECT_BY_ID,
     {
-      variables: { id: "619acf1ceb42542d68e677fe" },
+      variables: { id: projectId },
     }
   );
   const { loading: loadingProgress, data: dataProgress } = useQuery(
     GET_PROGRESS_BY_PROJECT_ID,
     {
-      variables: { projectId: "619acf1ceb42542d68e677fe" },
+      variables: { projectId },
     }
   );
   const project = dataProject?.getProjectById;
@@ -34,7 +32,7 @@ const ProjectInfo = () => {
       {true && !loadingProject && (
         <div className="project-modal">
           <div className="project-modal__content rounded">
-            <div className="project-modal__close" onClick={() => {}}>
+            <div className="project-modal__close" onClick={() => onClose("")}>
               &times;
             </div>
             <div className="project">
