@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Switch, BrowserRouter, Route, Redirect } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
@@ -10,32 +10,38 @@ import Projects from "./views/Projects";
 import ProjectInfo from "./views/ProjectInfo";
 import Inscriptions from "./views/Inscriptions";
 
-// import PrivateRoute from "./routes/PrivateRoute";
+import PrivateRoute from "./routes/PrivateRoute";
 import PublicRoute from "./routes/PublicRoute";
 import useAuth from "./hooks/useAuth";
 import Loader from "./components/Loader/Loader";
+import ModalAlert from "./components/ModalAlert/ModalAlert";
 
 const App = () => {
-  const { isLoading } = useAuth();
-  
+  const { isLoading, userSession, error } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setIsOpen(!!error);
+  }, [error]);
+
   return (
     <div>
       <BrowserRouter>
-        {/* {user && <Navbar />} */}
-        <Navbar />
+        {userSession && <Navbar />}
         <Switch>
           <PublicRoute exact path="/login" component={Login} />
           <PublicRoute exact path="/register" component={Register} />
-          <PublicRoute exact path="/users" component={Users} />
-          <PublicRoute exact path="/update-user" component={UpdateUser} />
-          <PublicRoute exact path="/projects" component={Projects} />
-          <PublicRoute exact path="/project-info" component={ProjectInfo} />
-          <PublicRoute exact path="/inscriptions" component={Inscriptions} />
+          <PrivateRoute exact path="/users" component={Users} />
+          <PrivateRoute exact path="/update-user" component={UpdateUser} />
+          <PrivateRoute exact path="/projects" component={Projects} />
+          <PrivateRoute exact path="/project-info" component={ProjectInfo} />
+          <PrivateRoute exact path="/inscriptions" component={Inscriptions} />
           <Route path="*">
-            <Redirect to="/" />
+            <Redirect to="/login" />
           </Route>
         </Switch>
         <Loader isShowLoading={isLoading} />
+        <ModalAlert isOpen={isOpen} setIsOpen={setIsOpen} message={error} />
       </BrowserRouter>
     </div>
   );

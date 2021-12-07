@@ -1,10 +1,15 @@
 import React from "react";
+import { useHistory } from "react-router-dom";
 import { Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 
 const Navbar = () => {
+  const { logout, isStudent, isLeader} = useAuth();
 
-  const { login, isLogin } = useAuth();
+  const handleLogout = () => {
+    logout();
+    document.location.reload();
+  };
 
   return (
     <nav className="navbar navbar-expand-md navbar-dark bg-dark">
@@ -27,42 +32,32 @@ const Navbar = () => {
         </button>
         <div className="collapse navbar-collapse justify-content-between" id="navbarNav">
           <ul className="navbar-nav">
-            <li className="nav-item">
-              <Link to="/login" className="nav-link">
-                Login
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/register" className="nav-link">
-                Registro
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link to="/users" className="nav-link">
-                Usuarios
-              </Link>
-            </li>
-            {/* {isAdmin() && (
-            <> */}
+            {!isStudent() && (
               <li className="nav-item">
-                <Link to="/projects" className="nav-link">
-                  Proyectos
+                <Link to="/users" className="nav-link">
+                  Usuarios
                 </Link>
               </li>
-              <li className="nav-item">
-                <Link to="/project-info" className="nav-link">
-                  Información del Proyecto
-                </Link>
-              </li>
-            {/* </>
-            )} */}
+            )}
             <li className="nav-item">
-              <Link to="/inscriptions" className="nav-link">
-                Inscripciones
+              <Link to="/projects" className="nav-link">
+                Proyectos
               </Link>
             </li>
-            <button className="btn btn-danger mb-3 mb-md-0 mx-3" onClick={() => login()}>
-              Iniciar sesión
+            <li className="nav-item">
+              <Link to="/project-info" className="nav-link">
+                Información del Proyecto
+              </Link>
+            </li>
+            {/* {isLeader() && ( */}
+              <li className="nav-item">
+                <Link to="/inscriptions" className="nav-link">
+                  Inscripciones
+                </Link>
+              </li>
+            {/* )} */}
+            <button className="btn btn-danger mb-3 mb-md-0 mx-3" onClick={handleLogout}>
+              Cerrar sesión
             </button>
           </ul>
           <div className="d-flex justify-content-center">

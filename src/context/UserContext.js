@@ -1,61 +1,49 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useState } from "react";
 import { useMutation } from "@apollo/client";
 import { LOGIN, REGISTER } from "../graphql/mutations/auth";
 
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [loginMutation, { loading: loadingLogin, error: errorLogin }] = useMutation(LOGIN);
-  const [registerMutation, { loading: loadingRegister, error: errorRegister }] = useMutation(REGISTER);
+  const [loginMutation] = useMutation(LOGIN);
+  const [registerMutation] = useMutation(REGISTER);
 
   const [userSession, setUserSession] = useState(JSON.parse(sessionStorage.getItem("user")) || null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  
-  // useEffect(() => {
-  //   // setError();
-  //   console.log("errorLogin", errorLogin);
-  //   console.log("errorRegister", errorRegister);
-  // }, [errorLogin, errorRegister]);
     
   const contextValue = {
     userSession,
     error,
     isLoading,
     setIsLoading,
-    register: async ({
-      email,
-      identificationNumber, 
-      fullName, 
-      password, 
-      role
-    }) => {
+    register: async (registerInfo) => {
       setError(null);
-      const responseRegister = await registerMutation({
-        variables: {
-          email,
-          identificationNumber, 
-          fullName, 
-          password, 
-          role
-        }
-      });
-      const { token, user } = JSON.parse(responseRegister);
-      sessionStorage.setItem("token", token);
-      sessionStorage.setItem("user", JSON.stringify(user));
+      setIsLoading(true);
+      try {
+        await registerMutation({ variables: registerInfo });
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
     },
-    login: async () => {
+    login: async (email, password) => {
       setError(null);
-      const responseLogin = await loginMutation({
-        variables: {  
-          email: "felipelop254@gmail.com",
-          password: "qwerty123"
-        }
-      });
-      const { token, user } = JSON.parse(responseLogin.data.login);
-      setUserSession(user);
-      sessionStorage.setItem("token", token);
-      sessionStorage.setItem("user", JSON.stringify(user));
+      setIsLoading(true);
+      try {
+        const responseLogin = await loginMutation({
+          variables: { email, password }
+        });
+        const { token, user } = JSON.parse(responseLogin.data.login);
+        setUserSession(user);
+        sessionStorage.setItem("token", token);
+        sessionStorage.setItem("user", JSON.stringify(user));
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
     },
     logout: () => {
       setError(null);

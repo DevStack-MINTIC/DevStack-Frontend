@@ -9,12 +9,11 @@ const PublicRoute = ({ component: Component, ...rest }) => {
   return (
     <Route 
       {...rest}
-      render={(props) => <Component {...props} />}
-      // render={(props) =>
-      //   !isLogin()
-      //     ? <Component {...props} /> 
-      //     : <Redirect to="/" />
-      // }
+      render={(props) =>
+        !isLogin()
+          ? <Component {...props} /> 
+          : <Redirect to="/projects" />
+      }
     />
   );
 };
