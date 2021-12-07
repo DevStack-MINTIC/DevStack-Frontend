@@ -34,7 +34,15 @@ const Users = () => {
 
   const { setIsLoading, isAdmin } = useAuth();
   const [users, setUsers] = useState([]);
-  const { loading: loadingUsers, data: dataUsers } = useQuery(GET_USERS);
+  const { loading: loadingUsers, data: dataUsers } = useQuery(
+    GET_USERS,
+    {
+      context: {
+        headers: {
+          authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        },
+      }
+    });
   
   const columns = [
     { title: "_id", field: "_id", hidden: true, editable: "never" },
