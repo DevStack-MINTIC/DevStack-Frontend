@@ -1,5 +1,8 @@
 import React, { useEffect, useState, forwardRef } from "react";
-import { useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
+import { format, fromUnixTime } from "date-fns";
+import { es } from "date-fns/locale";
+
 import useAuth from "../hooks/useAuth";
 
 import MaterialTable from "material-table";
@@ -14,6 +17,7 @@ import LastPage from "@material-ui/icons/LastPage";
 import Search from "@material-ui/icons/Search";
 
 import { GET_INSCRIPTIONS } from "../graphql/queries/inscription";
+import { APPROVE_INSCRIPTION } from "../graphql/mutations/inscription";
 
 
 const tableIcons = {
@@ -35,7 +39,20 @@ const Inscriptions = () => {
   const { setIsLoading } = useAuth();
   const [inscriptions, setIncriptions] = useState([]);
   const context = { headers: { authorization: `Bearer ${sessionStorage.getItem("token")}` }};
-  const { loading: loadingIncriptions, data: dataIncriptions } = useQuery(GET_INSCRIPTIONS, { context });
+  const { loading: loadingIncriptions, data: dataIncriptions, refetch} = useQuery(GET_INSCRIPTIONS, { context });
+
+  const [approveInscription] = useMutation(APPROVE_INSCRIPTION, { context });
+  const handleApproveInscription = async (id, status) => {
+    setIsLoading(true);
+    await approveInscription({
+      variables: {
+        id,
+        status,
+      },
+    });
+    await refetch();
+    setIsLoading(false);
+  };
 
   const columns = [
     { title: "_id", field: "_id", hidden: true, editable: "never" },
@@ -48,41 +65,25 @@ const Inscriptions = () => {
       lookup: {
         null: "Pendiente",
         ACCEPTED: "Aceptado",
-        REJECTED: "Recchazado",
+        REJECTED: "Rechazado",
       },
     },
     { title: "Admisión", field: "admissionDate", editable: "never" },
     { title: "Salida", field: "departureDate", editable: "never" },
   ];
 
-  // const handleRowUpdate = (newData, oldData, resolve) => {
-  //   const dataUpdate = [...dataProducts];
-  //   const index = oldData.tableData.id;
-  //   dataUpdate[index] = newData;
-  //   setDataProducts([...dataUpdate]);
-  //   resolve();
-  // };
-
-  // const handleCreateSale = () => {
-  //   setIsLoading(true);
-  //   const products = dataProducts
-  //     .filter((product) => product.amount > 0)
-  //     .map((product) => {
-  //       const { tableData, state, ...rest } = product;
-  //       return rest;
-  //     });
-  //   createSale({
-  //     products,
-  //     salesManager: user.email,
-  //   }).then((response) => {
-  //     getAllProducts();
-  //   }).finally(() => setIsLoading(false));
-  // };
-
   useEffect(() => {
     const usersMap = dataIncriptions?.getInscriptions?.map((inscription) => {
-      const {__typename, projectId: { name }, studentId: { fullName }, ...restIncription} = inscription;
-      return {...restIncription, projectName: name, studentName: fullName };
+      let {
+        __typename, 
+        projectId: { name }, 
+        studentId: { fullName }, 
+        admissionDate,
+        departureDate,
+        ...restIncription} = inscription;
+        admissionDate = admissionDate ? format(fromUnixTime(admissionDate / 1000), "dd/MMMM/yyyy", { locale: es }) : null;
+        departureDate = departureDate ? format(fromUnixTime(departureDate / 1000), "dd/MMMM/yyyy", { locale: es }) : null;
+      return {...restIncription, projectName: name, studentName: fullName, admissionDate, departureDate};
     });
     setIncriptions(usersMap);
   }, [dataIncriptions]);
@@ -99,11 +100,31 @@ const Inscriptions = () => {
         columns={columns}
         data={inscriptions}
         icons={tableIcons}
-        editable={{
-          // onRowUpdate: (newData, oldData) =>
-          //   new Promise((resolve) => {
-          //     handleRowUpdate(newData, oldData, resolve);
-          //   }),
+        actions={[
+          {
+            icon: "Check",
+            tooltip: "Aceptar",
+            onClick: (rowData) => {
+              handleApproveInscription(rowData._id, "ACCEPTED");
+            }
+          },
+          {
+            icon: "Clear",
+            tooltip: "Rechazar",
+            onClick: (rowData) => {
+              handleApproveInscription(rowData._id, "REJECTED");
+            }
+          },
+        ]}
+        components={{
+          Action: (props) => {
+            if (props.action.icon === "Check") {
+              return !props.data.status && <Check className="cursor-pointer" onClick={() => props.action.onClick(props.data)} />;
+            }
+            if (props.action.icon === "Clear") {
+              return !props.data.status && <Clear className="cursor-pointer" onClick={() => props.action.onClick(props.data)} />;
+            }
+          }
         }}
         options={{
           actionsColumnIndex: -1,
