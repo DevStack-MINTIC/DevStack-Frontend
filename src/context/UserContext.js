@@ -1,31 +1,59 @@
 import React, { createContext, useState } from "react";
-import { requestToken } from "../services";
+import { useMutation } from "@apollo/client";
+import { LOGIN, REGISTER } from "../graphql/mutations/auth";
 
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
+  const [loginMutation] = useMutation(LOGIN);
+  const [registerMutation] = useMutation(REGISTER);
 
-  const [user, setUser] = useState(JSON.parse(sessionStorage.getItem("user")));
+  const [userSession, setUserSession] = useState(JSON.parse(sessionStorage.getItem("user")) || null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
+    
   const contextValue = {
-    user,
+    userSession,
     error,
     isLoading,
     setIsLoading,
-    login: async (tokenId) => {
+    register: async (registerInfo) => {
       setError(null);
-      await requestToken(tokenId, setUser, setError);
+      setIsLoading(true);
+      try {
+        await registerMutation({ variables: registerInfo });
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    login: async (email, password) => {
+      setError(null);
+      setIsLoading(true);
+      try {
+        const responseLogin = await loginMutation({
+          variables: { email, password }
+        });
+        const { token, user } = JSON.parse(responseLogin.data.login);
+        setUserSession(user);
+        sessionStorage.setItem("token", token);
+        sessionStorage.setItem("user", JSON.stringify(user));
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
     },
     logout: () => {
-      setUser(null);
       setError(null);
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("user");
     },
-    isLogin: () => !!user,
-    isAdmin: () => user?.role === "ADMIN",
+    isLogin: () => !!userSession,
+    isAdmin: () => userSession?.role === "ADMIN",
+    isLeader: () => userSession?.role === "LEADER",
+    isStudent: () => userSession?.role === "STUDENT",
   };
 
   return (

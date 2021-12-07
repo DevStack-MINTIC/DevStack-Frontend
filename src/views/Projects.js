@@ -1,4 +1,5 @@
 import React, { useEffect, useState, forwardRef } from "react";
+import { useQuery } from "@apollo/client";
 
 import MaterialTable from "material-table";
 import AddBox from '@material-ui/icons/AddBox';
@@ -16,12 +17,12 @@ import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
+import Visibility from '@material-ui/icons/Visibility';
 
 import useAuth from "../hooks/useAuth"
 
-import { getProducts, updateProductById, createProduct } from "../services/products";
-//updateProductById
-//getProducts
+import { GET_PROJECTS } from "../graphql/queries/project";
+import ProjectInfo from "./ProjectInfo";
 
 const tableIcons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -40,85 +41,135 @@ const tableIcons = {
   Search: forwardRef((props, ref) => <Search {...props} ref={ref} />),
   SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} />),
   ThirdStateCheck: forwardRef((props, ref) => <Remove {...props} ref={ref} />),
-  ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
+  ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />),
+  Visibility: forwardRef((props, ref) => <Visibility {...props} ref={ref} />)
 };
 
 
 const Projects = () => {
   const { setIsLoading } = useAuth();
-  const [dataProducts, setDataProducts] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [viewProjectId, setViewProjectId] = useState("");
+  const { loading: loadingProjects, data: dataProjects } = useQuery(GET_PROJECTS);
   
-  useEffect(() => {
-    setIsLoading(true);
-    getProducts().then((data) => {
-      setDataProducts(data?.products);
-    }).finally(() => setIsLoading(false));
-  }, []);
 
   const columns = [
-    { title: "uid", field: "uid", hidden: true, editable: "never" },
-    { title: "Nombre del Producto", field: "name", type: "string", validate: (rowData) => !!rowData.name },
-    { title: "Precio", field: "value", type: "numeric", validate: (rowData) => rowData.value >= 0 },
-    { title: "Disponibilidad", field: "state", lookup: { true: "Disponible", false: "No disponible" }, validate: (rowData) => !!rowData.state },
+    { title: "_id", field: "_id", hidden: true, editable: "never" },
+    { title: "Nombre", field: "name", editable: "never" },
+    { 
+      title: "Estado", 
+      field: "status", 
+      editable: "never",
+      lookup: {
+        ACTIVE: "Activo",
+        INACTIVE: "Inactivo",
+      },
+    },
+    { 
+      title: "Fase", 
+      field: "phase", 
+      editable: "never",
+      lookup: {
+        STARTED: "Iniciando",
+        IN_PROGRESS: "En progreso",
+        FINISHED: "Finalizado",
+      },
+    },
+    { title: "Lider", field: "leader", editable: "never" },
   ];
 
-  const handleRowUpdate = (newData, oldData, resolve) => {
-    setIsLoading(true);
-    const boolState = newData.state === 'true' ? true : false;
-    updateProductById({
-      uid: newData.uid,
-      state: boolState,
-      value: newData.value,
-      name: newData.name,
-    }).then(() => {
-      const dataUpdate = [...dataProducts];
-      const index = oldData.tableData.id;
-      dataUpdate[index] = newData;
-      setDataProducts([...dataUpdate]);
-      resolve();
-    }).finally(() => setIsLoading(false));
-  };
+  // const handleRowUpdate = (newData, oldData, resolve) => {
+  //   setIsLoading(true);
+  //   const boolState = newData.state === 'true' ? true : false;
+  //   updateProductById({
+  //     uid: newData.uid,
+  //     state: boolState,
+  //     value: newData.value,
+  //     name: newData.name,
+  //   }).then(() => {
+  //     const dataUpdate = [...dataProducts];
+  //     const index = oldData.tableData.id;
+  //     dataUpdate[index] = newData;
+  //     setDataProducts([...dataUpdate]);
+  //     resolve();
+  //   }).finally(() => setIsLoading(false));
+  // };
 
-  const handleCreateProduct = (newData, resolve) => {
-    setIsLoading(true);
-    const {name, value, state} = newData;
-    const boolState = state === 'true' ? true : false;
-    createProduct({
-      name,
-      value,
-      state: boolState
-    }).then((response) => {
-      const dataUpdate = [...dataProducts];
-      dataUpdate.push(response.product);
-      setDataProducts([...dataUpdate]);
-      resolve();
-    }).finally(() => setIsLoading(false));
-  };
+  // const handleCreateProduct = (newData, resolve) => {
+  //   setIsLoading(true);
+  //   const {name, value, state} = newData;
+  //   const boolState = state === 'true' ? true : false;
+  //   createProduct({
+  //     name,
+  //     value,
+  //     state: boolState
+  //   }).then((response) => {
+  //     const dataUpdate = [...dataProducts];
+  //     dataUpdate.push(response.product);
+  //     setDataProducts([...dataUpdate]);
+  //     resolve();
+  //   }).finally(() => setIsLoading(false));
+  // };
+
+  useEffect(() => {
+    const usersMap = dataProjects?.getProjects?.map((project) => {
+      const {__typename, leader: { fullName }, ...restProject} = project;
+      return {...restProject, leader: fullName};
+    });
+    setProjects(usersMap);
+  }, [dataProjects]);
+
+  useEffect(() => {
+    setIsLoading(loadingProjects);
+  }, [loadingProjects, setIsLoading]);
 
   return (
-    <div className="container">
-      <h1 className="my-3">Proyectos</h1>
-      <MaterialTable
-        title=""
-        columns={columns}
-        data={dataProducts}
-        icons={tableIcons}
-        editable={{
-          onRowUpdate: (newData, oldData) =>
-            new Promise((resolve) => {
-              handleRowUpdate(newData, oldData, resolve);
-            }),
-          onRowAdd: (newData) =>
-            new Promise((resolve) => {
-              handleCreateProduct(newData, resolve)
-            }),
-        }}
-        options={{
-          actionsColumnIndex: -1,
-          sorting: true,
-        }}
-      />
-    </div>
+    <>
+      <div className="container">
+        <h1 className="my-3">Proyectos</h1>
+        <MaterialTable
+          title=""
+          columns={columns}
+          data={projects}
+          icons={tableIcons}
+          editable={{
+            // onRowUpdate: (newData, oldData) =>
+            //   new Promise((resolve) => {
+            //     handleRowUpdate(newData, oldData, resolve);
+            //   }),
+            // onRowAdd: (newData) =>
+            //   new Promise((resolve) => {
+            //     handleCreateProduct(newData, resolve)
+            //   }),
+          }}
+          actions={[
+            {
+              icon: "visibility",
+              tooltip: 'Visualizar',
+              onClick: (rowData) => {
+                setViewProjectId(rowData._id);
+              },
+            }
+          ]}
+          components={{
+            Action: (props) => (
+              props.action.icon === "visibility" && <Visibility className="cursor-pointer" onClick={(e) => props.action.onClick(props.data)} />
+            ),
+            // Toolbar: props => (
+            //   <div style={{ backgroundColor: '#e8eaf5' }}>
+            //     <MTableToolbar {...props} />
+            //     <button className="btn btn-primary">Crear Proyecto</button>
+            //   </div>
+            // )
+          }}
+          options={{
+            actionsColumnIndex: -1,
+            sorting: true,
+          }}
+        />
+      </div>
+      { !!viewProjectId && <ProjectInfo projectId={viewProjectId} onClose={setViewProjectId} /> }
+    </>
   );
 };
 
