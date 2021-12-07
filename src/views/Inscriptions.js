@@ -1,4 +1,5 @@
-import React, { useEffect, useState, forwardRef, useCallback } from "react";
+import React, { useEffect, useState, forwardRef } from "react";
+import { useQuery } from "@apollo/client";
 import useAuth from "../hooks/useAuth";
 
 import MaterialTable from "material-table";
@@ -12,8 +13,8 @@ import FirstPage from "@material-ui/icons/FirstPage";
 import LastPage from "@material-ui/icons/LastPage";
 import Search from "@material-ui/icons/Search";
 
-import { createSale } from "../services/sales";
-import { getProducts } from "../services";
+import { GET_INSCRIPTIONS } from "../graphql/queries/inscription";
+
 
 const tableIcons = {
   Check: forwardRef((props, ref) => <Check {...props} ref={ref} />),
@@ -31,76 +32,85 @@ const tableIcons = {
 };
 
 const Inscriptions = () => {
-  const [dataProducts, setDataProducts] = useState([]);
-  const { user, setIsLoading } = useAuth();
+  const { setIsLoading } = useAuth();
+  const [inscriptions, setIncriptions] = useState([]);
+  const { loading: loadingIncriptions, data: dataIncriptions } = useQuery(
+    GET_INSCRIPTIONS,
+    {
+      context: {
+        headers: {
+          authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        },
+      }
+    });
 
   const columns = [
-    {title : "Proyecto", field: "proyecto"},
-    {title : "Estudiante", field: "estudiante"},
-    {title : "Estado ", field: "estado"},
-    {title : "Fecha", field: "fecha"},
-    {title : "Fecha", field: "fecha2"},
-    {title : "Acciones", field: "acciones"},
+    { title: "_id", field: "_id", hidden: true, editable: "never" },
+    { title: "Proyecto", field: "projectName", editable: "never" },
+    { title: "Estudiante", field: "studentName", editable: "never" },
+    { 
+      title: "Estado", 
+      field: "status", 
+      editable: "never",
+      lookup: {
+        null: "Pendiente",
+        ACCEPTED: "Aceptado",
+        REJECTED: "Recchazado",
+      },
+    },
+    { title: "Admisión", field: "admissionDate", editable: "never" },
+    { title: "Salida", field: "departureDate", editable: "never" },
   ];
 
-  const handleRowUpdate = (newData, oldData, resolve) => {
-    const dataUpdate = [...dataProducts];
-    const index = oldData.tableData.id;
-    dataUpdate[index] = newData;
-    setDataProducts([...dataUpdate]);
-    resolve();
-  };
+  // const handleRowUpdate = (newData, oldData, resolve) => {
+  //   const dataUpdate = [...dataProducts];
+  //   const index = oldData.tableData.id;
+  //   dataUpdate[index] = newData;
+  //   setDataProducts([...dataUpdate]);
+  //   resolve();
+  // };
 
-  const handleCreateSale = () => {
-    setIsLoading(true);
-    const products = dataProducts
-      .filter((product) => product.amount > 0)
-      .map((product) => {
-        const { tableData, state, ...rest } = product;
-        return rest;
-      });
-    createSale({
-      products,
-      salesManager: user.email,
-    }).then((response) => {
-      getAllProducts();
-    }).finally(() => setIsLoading(false));
-  };
-
-  const getAllProducts = useCallback(() => {
-    setIsLoading(true);
-    setTimeout(() => {
-      getProducts().then((data) => {
-        const newProducts = data?.products
-          .filter((product) => product.state)
-          .map((product) => ({
-            ...product,
-            amount: 0,
-          }));
-        setDataProducts(newProducts);
-      }).finally(() => setIsLoading(false));
-    }, 200)
-    
-  }, [setIsLoading]);
+  // const handleCreateSale = () => {
+  //   setIsLoading(true);
+  //   const products = dataProducts
+  //     .filter((product) => product.amount > 0)
+  //     .map((product) => {
+  //       const { tableData, state, ...rest } = product;
+  //       return rest;
+  //     });
+  //   createSale({
+  //     products,
+  //     salesManager: user.email,
+  //   }).then((response) => {
+  //     getAllProducts();
+  //   }).finally(() => setIsLoading(false));
+  // };
 
   useEffect(() => {
-    getAllProducts();
-  }, [getAllProducts]);
+    const usersMap = dataIncriptions?.getInscriptions?.map((inscription) => {
+      const {__typename, projectId: { name }, studentId: { fullName }, ...restIncription} = inscription;
+      return {...restIncription, projectName: name, studentName: fullName };
+    });
+    setIncriptions(usersMap);
+  }, [dataIncriptions]);
+
+  useEffect(() => {
+    setIsLoading(loadingIncriptions);
+  }, [loadingIncriptions, setIsLoading]);
 
   return (
     <div className="container">
       <h1 className="my-3">Inscripciones</h1>
-
       <MaterialTable
         title=""
         columns={columns}
-        data={dataProducts}
+        data={inscriptions}
         icons={tableIcons}
         editable={{
-          onRowUpdate: (newData, oldData) =>
-            new Promise((resolve) => {
-              handleRowUpdate(newData, oldData, resolve);
-            }),
+          // onRowUpdate: (newData, oldData) =>
+          //   new Promise((resolve) => {
+          //     handleRowUpdate(newData, oldData, resolve);
+          //   }),
         }}
         options={{
           actionsColumnIndex: -1,
