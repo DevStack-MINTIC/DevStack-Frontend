@@ -1,5 +1,5 @@
 import React, { useEffect, useState, forwardRef } from "react";
-import { useQuery } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 
 import MaterialTable from "material-table";
 import ArrowDownward from "@material-ui/icons/ArrowDownward";
@@ -14,6 +14,7 @@ import Search from "@material-ui/icons/Search";
 
 import useAuth from "../hooks/useAuth"
 import { GET_USERS } from "../graphql/queries/user";
+import { UPDATE_USER_STATE } from "../graphql/mutations/user";
 
 const tableIcons = {
   Check: forwardRef((props, ref) => <Check {...props} ref={ref} />),
@@ -34,7 +35,7 @@ const Users = () => {
 
   const { setIsLoading, isAdmin } = useAuth();
   const [users, setUsers] = useState([]);
-  const { loading: loadingUsers, data: dataUsers } = useQuery(
+  const { loading: loadingUsers, data: dataUsers, refetch } = useQuery(
     GET_USERS,
     {
       context: {
@@ -44,6 +45,25 @@ const Users = () => {
       }
     });
   
+  const [updateUserStatus] = useMutation(UPDATE_USER_STATE);
+  const handleRowUpdate = async (newData, oldData, resolve) => {
+    setIsLoading(true);
+    await updateUserStatus({
+      context: {
+        headers: {
+          authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        },
+      },
+      variables: {
+        id: newData._id,
+        state: newData.state,
+      },
+    });
+    await refetch();
+    resolve();
+    setIsLoading(false);
+  };
+
   const columns = [
     { title: "_id", field: "_id", hidden: true, editable: "never" },
     { title: "Nombre Completo", field: "fullName", editable: "never" },
@@ -70,21 +90,6 @@ const Users = () => {
       },
     },
   ];
-
-  const handleRowUpdate = (newData, oldData, resolve) => {
-    // setIsLoading(loadingUsers);
-    // updateUserById({
-    //   uid: newData.uid,
-    //   state: newData.state,
-    //   role: newData.state,
-    // }).then(() => {
-    //   const dataUpdate = [...dataUsers];
-    //   const index = oldData.tableData.id;
-    //   dataUpdate[index] = newData;
-    //   setDataUsers([...dataUpdate]);
-    //   resolve();
-    // }).finally(() => setIsLoading(loadingUsers));
-  };
 
   useEffect(() => {
     const usersMap = dataUsers?.getUsers?.map((user) => {
