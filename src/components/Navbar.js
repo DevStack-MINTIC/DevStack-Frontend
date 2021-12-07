@@ -15,9 +15,9 @@ const Navbar = () => {
     <nav className="navbar navbar-expand-md navbar-dark bg-dark">
       <div className="container-fluid">
         <div className="nav-item">
-          {/* <Link className="navbar-brand" to="*">
-            Devware Store
-          </Link> */}
+          <Link className="navbar-brand" to="*">
+            Devware Academy
+          </Link>
         </div>
         <button
           className="navbar-toggler"
@@ -32,13 +32,6 @@ const Navbar = () => {
         </button>
         <div className="collapse navbar-collapse justify-content-between" id="navbarNav">
           <ul className="navbar-nav">
-            {!isStudent() && (
-              <li className="nav-item">
-                <Link to="/users" className="nav-link">
-                  Usuarios
-                </Link>
-              </li>
-            )}
             <li className="nav-item">
               <Link to="/projects" className="nav-link">
                 Proyectos
@@ -49,6 +42,13 @@ const Navbar = () => {
                 Información del Proyecto
               </Link>
             </li>
+            {!isStudent() && (
+              <li className="nav-item">
+                <Link to="/users" className="nav-link">
+                  Usuarios
+                </Link>
+              </li>
+            )}
             {/* {isLeader() && ( */}
               <li className="nav-item">
                 <Link to="/inscriptions" className="nav-link">

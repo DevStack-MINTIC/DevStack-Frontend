@@ -5,9 +5,8 @@ export const GET_PROJECTS = gql`
     getProjects {
       _id
       name
-      startDate
-      endDate
       status
+      phase
       leader {
         fullName
       }
