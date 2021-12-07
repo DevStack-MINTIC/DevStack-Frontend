@@ -35,25 +35,13 @@ const Users = () => {
 
   const { setIsLoading, isAdmin } = useAuth();
   const [users, setUsers] = useState([]);
-  const { loading: loadingUsers, data: dataUsers, refetch } = useQuery(
-    GET_USERS,
-    {
-      context: {
-        headers: {
-          authorization: `Bearer ${sessionStorage.getItem("token")}`,
-        },
-      }
-    });
+  const context = { headers: { authorization: `Bearer ${sessionStorage.getItem("token")}` }};
+  const { loading: loadingUsers, data: dataUsers, refetch } = useQuery(GET_USERS, { context });
   
-  const [updateUserStatus] = useMutation(UPDATE_USER_STATE);
+  const [updateUserStatus] = useMutation(UPDATE_USER_STATE, { context });
   const handleRowUpdate = async (newData, oldData, resolve) => {
     setIsLoading(true);
     await updateUserStatus({
-      context: {
-        headers: {
-          authorization: `Bearer ${sessionStorage.getItem("token")}`,
-        },
-      },
       variables: {
         id: newData._id,
         state: newData.state,

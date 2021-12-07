@@ -1,5 +1,5 @@
 import React, { useEffect, useState, forwardRef } from "react";
-import { useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 
 import MaterialTable from "material-table";
 import AddBox from '@material-ui/icons/AddBox';
@@ -18,10 +18,13 @@ import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
 import Visibility from '@material-ui/icons/Visibility';
+import Create from '@material-ui/icons/Create';
 
 import useAuth from "../hooks/useAuth"
 
 import { GET_PROJECTS } from "../graphql/queries/project";
+import { GET_INSCRIPTIONS_BY_STUDENT_ID } from "../graphql/queries/inscription";
+import { CREATE_INSCRIPTION } from "../graphql/mutations/inscription";
 import ProjectInfo from "./ProjectInfo";
 
 const tableIcons = {
@@ -47,12 +50,25 @@ const tableIcons = {
 
 
 const Projects = () => {
-  const { setIsLoading } = useAuth();
+  const { setIsLoading, isStudent } = useAuth();
   const [projects, setProjects] = useState([]);
   const [viewProjectId, setViewProjectId] = useState("");
-  const { loading: loadingProjects, data: dataProjects } = useQuery(GET_PROJECTS);
-  
 
+  const context = { headers: { authorization: `Bearer ${sessionStorage.getItem("token")}` }};
+  const { loading: loadingProjects, data: dataProjects } = useQuery(GET_PROJECTS);
+  const { loading: loadingInscription, data: dataIncriptionsByStudentId, refetch } = useQuery(GET_INSCRIPTIONS_BY_STUDENT_ID, { context });
+
+  const [createInscription] = useMutation(CREATE_INSCRIPTION, { context });
+  const handlecreateInscription = async (projectId) => {
+    setIsLoading(true);
+    await createInscription({
+      variables: {
+        projectId,
+      },
+    });
+    await refetch();
+    setIsLoading(false);
+  };
   const columns = [
     { title: "_id", field: "_id", hidden: true, editable: "never" },
     { title: "Nombre", field: "name", editable: "never" },
@@ -78,39 +94,6 @@ const Projects = () => {
     { title: "Lider", field: "leader", editable: "never" },
   ];
 
-  // const handleRowUpdate = (newData, oldData, resolve) => {
-  //   setIsLoading(true);
-  //   const boolState = newData.state === 'true' ? true : false;
-  //   updateProductById({
-  //     uid: newData.uid,
-  //     state: boolState,
-  //     value: newData.value,
-  //     name: newData.name,
-  //   }).then(() => {
-  //     const dataUpdate = [...dataProducts];
-  //     const index = oldData.tableData.id;
-  //     dataUpdate[index] = newData;
-  //     setDataProducts([...dataUpdate]);
-  //     resolve();
-  //   }).finally(() => setIsLoading(false));
-  // };
-
-  // const handleCreateProduct = (newData, resolve) => {
-  //   setIsLoading(true);
-  //   const {name, value, state} = newData;
-  //   const boolState = state === 'true' ? true : false;
-  //   createProduct({
-  //     name,
-  //     value,
-  //     state: boolState
-  //   }).then((response) => {
-  //     const dataUpdate = [...dataProducts];
-  //     dataUpdate.push(response.product);
-  //     setDataProducts([...dataUpdate]);
-  //     resolve();
-  //   }).finally(() => setIsLoading(false));
-  // };
-
   useEffect(() => {
     const usersMap = dataProjects?.getProjects?.map((project) => {
       const {__typename, leader: { fullName }, ...restProject} = project;
@@ -127,46 +110,55 @@ const Projects = () => {
     <>
       <div className="container">
         <h1 className="my-3">Proyectos</h1>
-        <MaterialTable
-          title=""
-          columns={columns}
-          data={projects}
-          icons={tableIcons}
-          editable={{
-            // onRowUpdate: (newData, oldData) =>
-            //   new Promise((resolve) => {
-            //     handleRowUpdate(newData, oldData, resolve);
-            //   }),
-            // onRowAdd: (newData) =>
-            //   new Promise((resolve) => {
-            //     handleCreateProduct(newData, resolve)
-            //   }),
-          }}
-          actions={[
-            {
-              icon: "visibility",
-              tooltip: 'Visualizar',
-              onClick: (rowData) => {
-                setViewProjectId(rowData._id);
+        { !loadingInscription && (
+          <MaterialTable
+            title=""
+            columns={columns}
+            data={projects}
+            icons={tableIcons}
+            actions={[
+              {
+                icon: "Visibility",
+                tooltip: 'Visualizar',
+                onClick: (rowData) => {
+                  setViewProjectId(rowData._id);
+                },
               },
-            }
-          ]}
-          components={{
-            Action: (props) => (
-              props.action.icon === "visibility" && <Visibility className="cursor-pointer" onClick={(e) => props.action.onClick(props.data)} />
-            ),
-            // Toolbar: props => (
-            //   <div style={{ backgroundColor: '#e8eaf5' }}>
-            //     <MTableToolbar {...props} />
-            //     <button className="btn btn-primary">Crear Proyecto</button>
-            //   </div>
-            // )
-          }}
-          options={{
-            actionsColumnIndex: -1,
-            sorting: true,
-          }}
-        />
+              {
+                icon: "Create",
+                tooltip: 'Inscribirse',
+                onClick: (rowData) => {
+                  handlecreateInscription(rowData._id);
+                },
+              }
+            ]}
+            components={{
+              Action: (props) => {
+                if (props.action.icon === "Visibility") {
+                  return <Visibility className="cursor-pointer" onClick={() => props.action.onClick(props.data)} />;
+                }
+                if (props.action.icon === "Create") {
+                  const isStudentInscript = isStudent() && 
+                    !dataIncriptionsByStudentId
+                    .getInscriptionsByStudentId
+                    .includes(props.data._id);
+                  return isStudentInscript && (
+                    <Create className="cursor-pointer" onClick={() => props.action.onClick(props.data)} />
+                  )
+                }
+              },
+              // Toolbar: props => (
+              //   <div style={{ backgroundColor: '#e8eaf5' }}>
+              //     <MTableToolbar {...props} />
+              //     <button className="btn btn-primary">Crear Proyecto</button>
+              //   </div>
+              // )
+            }}
+            options={{
+              actionsColumnIndex: -1,
+              sorting: true,
+            }}
+          />)}
       </div>
       { !!viewProjectId && <ProjectInfo projectId={viewProjectId} onClose={setViewProjectId} /> }
     </>

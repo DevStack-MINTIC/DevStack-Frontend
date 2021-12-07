@@ -14,6 +14,7 @@ import PublicRoute from "./routes/PublicRoute";
 import useAuth from "./hooks/useAuth";
 import Loader from "./components/Loader/Loader";
 import ModalAlert from "./components/ModalAlert/ModalAlert";
+import Dashboard from "./views/Dashboard";
 
 const App = () => {
   const { isLoading, userSession, error } = useAuth();
@@ -30,6 +31,7 @@ const App = () => {
         <Switch>
           <PublicRoute exact path="/login" component={Login} />
           <PublicRoute exact path="/register" component={Register} />
+          <PrivateRoute exact path="/" component={Dashboard} />
           <PrivateRoute exact path="/users" component={Users} />
           <PrivateRoute exact path="/update-user" component={UpdateUser} />
           <PrivateRoute exact path="/projects" component={Projects} />

@@ -34,15 +34,8 @@ const tableIcons = {
 const Inscriptions = () => {
   const { setIsLoading } = useAuth();
   const [inscriptions, setIncriptions] = useState([]);
-  const { loading: loadingIncriptions, data: dataIncriptions } = useQuery(
-    GET_INSCRIPTIONS,
-    {
-      context: {
-        headers: {
-          authorization: `Bearer ${sessionStorage.getItem("token")}`,
-        },
-      }
-    });
+  const context = { headers: { authorization: `Bearer ${sessionStorage.getItem("token")}` }};
+  const { loading: loadingIncriptions, data: dataIncriptions } = useQuery(GET_INSCRIPTIONS, { context });
 
   const columns = [
     { title: "_id", field: "_id", hidden: true, editable: "never" },

@@ -10,15 +10,12 @@ const UpdateUser = () => {
   const { setIsLoading, userSession } = useAuth();
   const [name, setName] = useState("");
   const [pass, setPass] = useState("");
+  const context = { headers: { authorization: `Bearer ${sessionStorage.getItem("token")}` }};
 
   const { loading: loadingUser, data: dataUser, refetch} = useQuery(
     GET_USER_BY_ID, 
     {
-      context: {
-        headers: {
-          authorization: `Bearer ${sessionStorage.getItem("token")}`,
-        },
-      },
+      context,
       variables: { id: userSession.id }
     }
   );  
@@ -26,11 +23,7 @@ const UpdateUser = () => {
   const handleSubmit = async () => {
     setIsLoading(true);
     await updateUser({
-      context: {
-        headers: {
-          authorization: `Bearer ${sessionStorage.getItem("token")}`,
-        },
-      },
+      context,
       variables: {
         ...(!!name && { fullName: name }),
         ...(!!pass && { password: pass }),

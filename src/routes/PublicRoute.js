@@ -12,7 +12,7 @@ const PublicRoute = ({ component: Component, ...rest }) => {
       render={(props) =>
         !isLogin()
           ? <Component {...props} /> 
-          : <Redirect to="/projects" />
+          : <Redirect to="/" />
       }
     />
   );
