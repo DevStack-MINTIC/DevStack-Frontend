@@ -1,5 +1,5 @@
 import React from "react";
-// import { useHistory } from "react-router";
+import useAuth from "../hooks/useAuth"
 import { useQuery } from "@apollo/client";
 
 // import useAuth from "../hooks/useAuth";
@@ -10,7 +10,8 @@ import "./ProjectInfo.scss";
 import { format, fromUnixTime } from "date-fns";
 import { es } from "date-fns/locale";
 
-const ProjectInfo = ({ projectId, onClose }) => {
+const ProjectInfo = ({ projectId, isEnrolled, onClose }) => {
+  const { setIsLoading, isStudent, isLeader } = useAuth();
 
   const { loading: loadingProject, data: dataProject } = useQuery(
     GET_PROJECT_BY_ID,
@@ -117,19 +118,25 @@ const ProjectInfo = ({ projectId, onClose }) => {
                             <li>{item.observation}</li>
                           </ul>
                         ) : (
-                          <ul>
-                            <li>
-                              <a href="#">Añadir observación</a>
-                            </li>
-                          </ul>
+                          <>
+                            { isLeader() && (
+                              <ul>
+                                <li>
+                                  <a href="#">Añadir observación</a>
+                                </li>
+                              </ul>
+                            )}
+                          </>
                         )}
                       </ul>
                     ))}
-                  <ul>
-                    <li>
-                      <a href="#">Añadir Avance</a>
-                    </li>
-                  </ul>
+                  { isStudent() && isEnrolled && (
+                    <ul>
+                      <li>
+                        <a href="#">Añadir Avance</a>
+                      </li>
+                    </ul>
+                  )}
                 </div>
               </div>
             </div>

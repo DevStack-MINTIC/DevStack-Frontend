@@ -20,7 +20,13 @@ export const GET_INSCRIPTIONS = gql`
 `;
 
 export const GET_INSCRIPTIONS_BY_STUDENT_ID = gql`
-  query Query {
-    getInscriptionsByStudentId
+  query GetInscriptionsByStudentId {
+    getInscriptionsByStudentId {
+      _id,
+      projectId {
+        _id
+      },
+      status
+    }
   }
 `;

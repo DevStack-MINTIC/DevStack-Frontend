@@ -53,6 +53,7 @@ const Projects = () => {
   const { setIsLoading, isStudent } = useAuth();
   const [projects, setProjects] = useState([]);
   const [viewProjectId, setViewProjectId] = useState("");
+  const [isEnrolled, setIsEnrolled] = useState(false);
 
   const context = { headers: { authorization: `Bearer ${sessionStorage.getItem("token")}` }};
   const { loading: loadingProjects, data: dataProjects } = useQuery(GET_PROJECTS);
@@ -120,8 +121,9 @@ const Projects = () => {
               {
                 icon: "Visibility",
                 tooltip: 'Visualizar',
-                onClick: (rowData) => {
+                onClick: (rowData, isEnrolledStudent) => {
                   setViewProjectId(rowData._id);
+                  setIsEnrolled(isEnrolledStudent);
                 },
               },
               {
@@ -135,15 +137,27 @@ const Projects = () => {
             components={{
               Action: (props) => {
                 if (props.action.icon === "Visibility") {
-                  return <Visibility className="cursor-pointer" onClick={() => props.action.onClick(props.data)} />;
+                  const isEnrolledStudent = dataIncriptionsByStudentId
+                  ?.getInscriptionsByStudentId
+                  .findIndex((inscription) => {
+                    return (
+                      inscription.projectId._id === props.data._id &&
+                      inscription.status === "ACCEPTED"
+                    )
+                  });
+                  return (
+                    <Visibility 
+                      className="cursor-pointer" 
+                      onClick={() => props.action.onClick(props.data, isEnrolledStudent !== -1)} />
+                  );
                 }
                 if (props.action.icon === "Create") {
-                  const isStudentInscript = isStudent() && 
-                    !dataIncriptionsByStudentId
-                    .getInscriptionsByStudentId
-                    .includes(props.data._id);
-                  return isStudentInscript && (
-                    <Create className="cursor-pointer" onClick={() => props.action.onClick(props.data)} />
+                  const projectIDs = dataIncriptionsByStudentId?.getInscriptionsByStudentId.map((inscription) => inscription.projectId._id);
+                  const isEnrolledStudent = isStudent() && !projectIDs.includes(props.data._id);
+                  return isEnrolledStudent && (
+                    <Create 
+                      className="cursor-pointer" 
+                      onClick={() => props.action.onClick(props.data)} />
                   )
                 }
               },
@@ -160,7 +174,12 @@ const Projects = () => {
             }}
           />)}
       </div>
-      { !!viewProjectId && <ProjectInfo projectId={viewProjectId} onClose={setViewProjectId} /> }
+      { !!viewProjectId && (
+        <ProjectInfo
+          projectId={viewProjectId} 
+          isEnrolled={isEnrolled} 
+          onClose={setViewProjectId} />
+      )}
     </>
   );
 };
