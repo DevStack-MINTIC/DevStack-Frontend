@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 
 const Navbar = () => {
-  const { logout, isStudent, isLeader } = useAuth();
+  const { logout, isStudent, isLeader, isAdmin } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -43,7 +43,7 @@ const Navbar = () => {
                 </Link>
               </li>
             )}
-            {isLeader() && (
+            {isLeader() &&(
               <li className="nav-item">
                 <Link to="/inscriptions" className="nav-link">
                   Inscripciones
