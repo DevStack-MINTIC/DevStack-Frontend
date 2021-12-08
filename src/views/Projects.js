@@ -23,6 +23,7 @@ import Create from '@material-ui/icons/Create';
 import useAuth from "../hooks/useAuth"
 
 import { GET_PROJECTS } from "../graphql/queries/project";
+import { APPROVE_PROJECT } from "../graphql/mutations/project";
 import { GET_INSCRIPTIONS_BY_STUDENT_ID } from "../graphql/queries/inscription";
 import { CREATE_INSCRIPTION } from "../graphql/mutations/inscription";
 import ProjectInfo from "./ProjectInfo";
@@ -51,7 +52,7 @@ const tableIcons = {
 
 
 const Projects = () => {
-  const { setIsLoading, isStudent, isLeader } = useAuth();
+  const { setIsLoading, isStudent, isLeader, isAdmin } = useAuth();
   const [projects, setProjects] = useState([]);
   const [viewProjectId, setViewProjectId] = useState("");
   const [isEnrolled, setIsEnrolled] = useState(false);
@@ -72,6 +73,19 @@ const Projects = () => {
     await refetchInscription();
     setIsLoading(false);
   };
+
+  const [approveProject] = useMutation(APPROVE_PROJECT, { context });
+  const handleApproveProject = async (id) => {
+    setIsLoading(true);
+    await approveProject({
+      variables: {
+        id,
+      },
+    });
+    await refetchProjects();
+    setIsLoading(false);
+  };
+
   const columns = [
     { title: "_id", field: "_id", hidden: true, editable: "never" },
     { title: "Nombre", field: "name", editable: "never" },
@@ -89,7 +103,7 @@ const Projects = () => {
       field: "phase", 
       editable: "never",
       lookup: {
-        null: "Pendiente aprobación",
+        null: "_",
         STARTED: "Iniciando",
         IN_PROGRESS: "En progreso",
         FINISHED: "Finalizado",
@@ -135,7 +149,14 @@ const Projects = () => {
                 onClick: (rowData) => {
                   handlecreateInscription(rowData._id);
                 },
-              }
+              },
+              {
+                icon: "Check",
+                tooltip: "Aceptar",
+                onClick: (rowData) => {
+                  handleApproveProject(rowData._id);
+                }
+              },
             ]}
             components={{
               Action: (props) => {
@@ -167,6 +188,10 @@ const Projects = () => {
                       className="cursor-pointer" 
                       onClick={() => props.action.onClick(props.data)} />
                   )
+                }
+                if (props.action.icon === "Check") {
+                  const isAdminApprove = isAdmin() && props.data.status === "INACTIVE";
+                  return isAdminApprove && <Check className="cursor-pointer" onClick={() => props.action.onClick(props.data)} />;
                 }
               },
               Toolbar: props => (
