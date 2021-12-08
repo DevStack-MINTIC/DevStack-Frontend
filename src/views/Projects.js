@@ -87,6 +87,7 @@ const Projects = () => {
       field: "phase", 
       editable: "never",
       lookup: {
+        null: "Pendiente aprobación",
         STARTED: "Iniciando",
         IN_PROGRESS: "En progreso",
         FINISHED: "Finalizado",
@@ -153,7 +154,7 @@ const Projects = () => {
                 }
                 if (props.action.icon === "Create") {
                   const projectIDs = dataIncriptionsByStudentId?.getInscriptionsByStudentId.map((inscription) => inscription.projectId._id);
-                  const isEnrolledStudent = isStudent() && !projectIDs.includes(props.data._id);
+                  const isEnrolledStudent = isStudent() && !projectIDs.includes(props.data._id) && props.data.status === "ACTIVE";
                   return isEnrolledStudent && (
                     <Create 
                       className="cursor-pointer" 

@@ -1,36 +1,59 @@
-import React from "react";
+import React, { useState } from "react";
 import useAuth from "../hooks/useAuth"
-import { useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 
 // import useAuth from "../hooks/useAuth";
 import { GET_PROJECT_BY_ID } from "../graphql/queries/project";
 import { GET_PROGRESS_BY_PROJECT_ID } from "../graphql/queries/progress";
+import { CREATE_PROGRESS, UPDATE_OBSERVATION } from "../graphql/mutations/progress";
 
 import "./ProjectInfo.scss";
 import { format, fromUnixTime } from "date-fns";
 import { es } from "date-fns/locale";
 
 const ProjectInfo = ({ projectId, isEnrolled, onClose }) => {
-  const { setIsLoading, isStudent, isLeader } = useAuth();
+  const { setIsLoading, isStudent, isLeader, userSession} = useAuth();
+  const context = { headers: { authorization: `Bearer ${sessionStorage.getItem("token")}` }};
+  const [isNewProgress, setIsNewProgress] = useState(false);
+  const [textareaContent, setTextareaContent] = useState("");
 
-  const { loading: loadingProject, data: dataProject } = useQuery(
+  const { loading: loadingProject, data: dataProject, refetch: refetchProject } = useQuery(
     GET_PROJECT_BY_ID,
     {
       variables: { id: projectId },
     }
   );
-  const { loading: loadingProgress, data: dataProgress } = useQuery(
+  const { loading: loadingProgress, data: dataProgress, refetch: refetchProgress } = useQuery(
     GET_PROGRESS_BY_PROJECT_ID,
     {
       variables: { projectId },
     }
   );
+  
+  const [createProgress] = useMutation(CREATE_PROGRESS, { context });
+  const handleCreateProgress = async () => {
+    setIsLoading(true);
+    await createProgress({
+      variables: {
+        projectId,
+        description: textareaContent,
+      },
+    });
+    await refetchProject();
+    await refetchProgress();
+    setIsLoading(false);
+    setIsNewProgress(false);
+    setTextareaContent("");
+  };
+
   const project = dataProject?.getProjectById;
   const progress = dataProgress?.getProgressByProjectId;
+  const isOwnerLeader = isLeader() && project?.leader?._id === userSession.id;
+  const isEnrolledStudent = isStudent() && isEnrolled;
 
   return (
     <>
-      {true && !loadingProject && (
+      {!loadingProject && (
         <div className="project-modal">
           <div className="project-modal__content rounded">
             <div className="project-modal__close" onClick={() => onClose("")}>
@@ -49,10 +72,11 @@ const ProjectInfo = ({ projectId, isEnrolled, onClose }) => {
                 </span>
               </h3>
               <div className="row">
-                <div className="project__info col-sm-6">
+                <div className={`project__info ${project.status === "ACTIVE" ? "col-sm-6" : "col-sm-12"}`}>
                   <span>
                     <b>Fase: </b>
                     {
+                      project.phase === null ? "PENDIENTE APROBACIÓN" : null || 
                       project.phase === "STARTED" ? "INICIADO" : null || 
                       project.phase === "IN_PROGRESS" ? "EN PROGRESO" : null || 
                       project.phase === "FINISHED" ? "FINALIZADO" : null
@@ -107,37 +131,58 @@ const ProjectInfo = ({ projectId, isEnrolled, onClose }) => {
                     <div></div>
                   </div> */}
                 </div>
-                <div className="project__progress col-sm-6">
-                  <h4>Avances y observaciones</h4>
-                  {!loadingProgress &&
-                    progress.map((item) => (
-                      <ul key={item._id}>
-                        <li>{item.description}</li>
-                        {item.observation ? (
-                          <ul>
-                            <li>{item.observation}</li>
-                          </ul>
-                        ) : (
-                          <>
-                            { isLeader() && (
-                              <ul>
-                                <li>
-                                  <a href="#">Añadir observación</a>
-                                </li>
-                              </ul>
-                            )}
-                          </>
-                        )}
+                { project.status === "ACTIVE" && (
+                  <div className="project__progress col-sm-6">
+                    <h4>Avances y observaciones</h4>
+                    {!loadingProgress &&
+                      progress.map((item) => (
+                        <ul key={item._id}>
+                          <li>{item.description}</li>
+                          {item.observation ? (
+                            <ul><li>{item.observation}</li></ul>
+                          ) : (
+                            <>
+                              { isOwnerLeader && (
+                                <ul>
+                                  { true ? 
+                                    (<textarea className="w-100"/>) :
+                                    (<li><a href="#" onClick={() => {}}>Añadir observación</a></li>)
+                                  }
+                                </ul>
+                              )}
+                            </>
+                          )}
+                        </ul>
+                      ))}
+                    { isEnrolledStudent && (
+                      <ul>
+                        { isNewProgress ? 
+                          (
+                            <>
+                              <textarea 
+                                className="w-100" 
+                                value={textareaContent} 
+                                onChange={(e) => setTextareaContent(e.target.value)}/>
+                              <div>
+                                <button 
+                                  className="btn btn-secondary" 
+                                  onClick={() => setIsNewProgress(false)}>
+                                    Cancelar
+                                </button>
+                                <button 
+                                  className="btn btn-primary" 
+                                  onClick={() => handleCreateProgress()}>
+                                    Guardar
+                                </button>
+                              </div>
+                            </>    
+                          ) :
+                          (<li><a href="#" onClick={() => setIsNewProgress(true)}>Añadir avance</a></li>)
+                        }
                       </ul>
-                    ))}
-                  { isStudent() && isEnrolled && (
-                    <ul>
-                      <li>
-                        <a href="#">Añadir Avance</a>
-                      </li>
-                    </ul>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
