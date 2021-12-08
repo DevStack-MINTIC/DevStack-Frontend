@@ -5,7 +5,7 @@ export const CREATE_PROJECT = gql`
     $name: String!, 
     $generalObjective: String!, 
     $specificObjectives: [String]!, 
-    $budget: Int!
+    $budget: String!
   ) {
     createProject(
       name: $name, 

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import useAuth from "../hooks/useAuth"
 import { useMutation, useQuery } from "@apollo/client";
 
-// import useAuth from "../hooks/useAuth";
 import { GET_PROJECT_BY_ID } from "../graphql/queries/project";
 import { GET_PROGRESS_BY_PROJECT_ID } from "../graphql/queries/progress";
 import { CREATE_PROGRESS, UPDATE_OBSERVATION } from "../graphql/mutations/progress";

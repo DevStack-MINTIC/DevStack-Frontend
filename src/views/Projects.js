@@ -1,7 +1,7 @@
 import React, { useEffect, useState, forwardRef } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 
-import MaterialTable from "material-table";
+import MaterialTable, { MTableToolbar } from "material-table";
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
 import Check from '@material-ui/icons/Check';
@@ -26,6 +26,7 @@ import { GET_PROJECTS } from "../graphql/queries/project";
 import { GET_INSCRIPTIONS_BY_STUDENT_ID } from "../graphql/queries/inscription";
 import { CREATE_INSCRIPTION } from "../graphql/mutations/inscription";
 import ProjectInfo from "./ProjectInfo";
+import ProjectCreate from "./ProjectCreate";
 
 const tableIcons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -50,14 +51,15 @@ const tableIcons = {
 
 
 const Projects = () => {
-  const { setIsLoading, isStudent } = useAuth();
+  const { setIsLoading, isStudent, isLeader } = useAuth();
   const [projects, setProjects] = useState([]);
   const [viewProjectId, setViewProjectId] = useState("");
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [isCreateProject, setIsCreateProject] = useState(false);
 
   const context = { headers: { authorization: `Bearer ${sessionStorage.getItem("token")}` }};
-  const { loading: loadingProjects, data: dataProjects } = useQuery(GET_PROJECTS);
-  const { loading: loadingInscription, data: dataIncriptionsByStudentId, refetch } = useQuery(GET_INSCRIPTIONS_BY_STUDENT_ID, { context });
+  const { loading: loadingProjects, data: dataProjects, refetch: refetchProjects } = useQuery(GET_PROJECTS);
+  const { loading: loadingInscription, data: dataIncriptionsByStudentId, refetch: refetchInscription } = useQuery(GET_INSCRIPTIONS_BY_STUDENT_ID, { context });
 
   const [createInscription] = useMutation(CREATE_INSCRIPTION, { context });
   const handlecreateInscription = async (projectId) => {
@@ -67,7 +69,7 @@ const Projects = () => {
         projectId,
       },
     });
-    await refetch();
+    await refetchInscription();
     setIsLoading(false);
   };
   const columns = [
@@ -139,13 +141,13 @@ const Projects = () => {
               Action: (props) => {
                 if (props.action.icon === "Visibility") {
                   const isEnrolledStudent = dataIncriptionsByStudentId
-                  ?.getInscriptionsByStudentId
-                  .findIndex((inscription) => {
-                    return (
-                      inscription.projectId._id === props.data._id &&
-                      inscription.status === "ACCEPTED"
-                    )
-                  });
+                    ?.getInscriptionsByStudentId
+                    .findIndex((inscription) => {
+                      return (
+                        inscription.projectId._id === props.data._id &&
+                        inscription.status === "ACCEPTED"
+                      )
+                    });
                   return (
                     <Visibility 
                       className="cursor-pointer" 
@@ -153,8 +155,13 @@ const Projects = () => {
                   );
                 }
                 if (props.action.icon === "Create") {
-                  const projectIDs = dataIncriptionsByStudentId?.getInscriptionsByStudentId.map((inscription) => inscription.projectId._id);
-                  const isEnrolledStudent = isStudent() && !projectIDs.includes(props.data._id) && props.data.status === "ACTIVE";
+                  const projectIDs = dataIncriptionsByStudentId
+                    ?.getInscriptionsByStudentId
+                    .map((inscription) => inscription.projectId._id);
+                  const isEnrolledStudent = 
+                    isStudent() && 
+                    !projectIDs.includes(props.data._id) && 
+                    props.data.status === "ACTIVE";
                   return isEnrolledStudent && (
                     <Create 
                       className="cursor-pointer" 
@@ -162,12 +169,14 @@ const Projects = () => {
                   )
                 }
               },
-              // Toolbar: props => (
-              //   <div style={{ backgroundColor: '#e8eaf5' }}>
-              //     <MTableToolbar {...props} />
-              //     <button className="btn btn-primary">Crear Proyecto</button>
-              //   </div>
-              // )
+              Toolbar: props => (
+                <div>
+                  <MTableToolbar {...props} />
+                  {isLeader() && (
+                    <button className="btn btn-primary mx-2" onClick={() => setIsCreateProject(true)}>Crear Proyecto</button>
+                  )}
+                </div>
+              )
             }}
             options={{
               actionsColumnIndex: -1,
@@ -181,6 +190,11 @@ const Projects = () => {
           isEnrolled={isEnrolled} 
           onClose={setViewProjectId} />
       )}
+      <ProjectCreate
+        isOpen={isCreateProject}
+        onClose={() => setIsCreateProject(false)}
+        refetchProjects={refetchProjects}
+      />
     </>
   );
 };
