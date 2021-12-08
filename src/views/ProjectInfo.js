@@ -14,6 +14,7 @@ const ProjectInfo = ({ projectId, isEnrolled, onClose }) => {
   const { setIsLoading, isStudent, isLeader, userSession} = useAuth();
   const context = { headers: { authorization: `Bearer ${sessionStorage.getItem("token")}` }};
   const [isNewProgress, setIsNewProgress] = useState(false);
+  const [isNewObservation, setIsNewObservation] = useState("");
   const [textareaContent, setTextareaContent] = useState("");
 
   const { loading: loadingProject, data: dataProject, refetch: refetchProject } = useQuery(
@@ -42,6 +43,21 @@ const ProjectInfo = ({ projectId, isEnrolled, onClose }) => {
     await refetchProgress();
     setIsLoading(false);
     setIsNewProgress(false);
+    setTextareaContent("");
+  };
+
+  const [updateObservation] = useMutation(UPDATE_OBSERVATION, { context });
+  const handleUpdateObservation = async () => {
+    setIsLoading(true);
+    await updateObservation({
+      variables: {
+        id: isNewObservation,
+        observation: textareaContent,
+      },
+    });
+    await refetchProgress();
+    setIsLoading(false);
+    setIsNewObservation("");
     setTextareaContent("");
   };
 
@@ -125,10 +141,26 @@ const ProjectInfo = ({ projectId, isEnrolled, onClose }) => {
                       )
                     )}
                   </ul>
-                  {/* <div>
-                    <h4>Integrantes del proyecto</h4>
-                    <div></div>
-                  </div> */}
+                  { isNewObservation && (
+                    <>
+                      <textarea 
+                        className="w-100" 
+                        value={textareaContent} 
+                        onChange={(e) => setTextareaContent(e.target.value)}/>
+                      <div>
+                        <button 
+                          className="btn btn-secondary" 
+                          onClick={() => setIsNewObservation("")}>
+                            Cancelar
+                        </button>
+                        <button 
+                          className="btn btn-primary" 
+                          onClick={() => handleUpdateObservation()}>
+                            Guardar
+                        </button>
+                      </div>
+                    </>   
+                  )}
                 </div>
                 { project.status === "ACTIVE" && (
                   <div className="project__progress col-sm-6">
@@ -141,12 +173,9 @@ const ProjectInfo = ({ projectId, isEnrolled, onClose }) => {
                             <ul><li>{item.observation}</li></ul>
                           ) : (
                             <>
-                              { isOwnerLeader && (
+                              { isOwnerLeader && !isNewObservation && (
                                 <ul>
-                                  { true ? 
-                                    (<textarea className="w-100"/>) :
-                                    (<li><a href="#" onClick={() => {}}>Añadir observación</a></li>)
-                                  }
+                                  <li><a href="#" onClick={() => setIsNewObservation(item._id)}>Añadir observación</a></li>
                                 </ul>
                               )}
                             </>
