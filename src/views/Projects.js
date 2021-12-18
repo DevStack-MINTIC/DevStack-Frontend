@@ -114,8 +114,8 @@ const Projects = () => {
 
   useEffect(() => {
     const usersMap = dataProjects?.getProjects?.map((project) => {
-      const {__typename, leader: { fullName }, ...restProject} = project;
-      return {...restProject, leader: fullName};
+      const {__typename, leader, ...restProject} = project;
+      return {...restProject, leader: leader?.fullName};
     });
     setProjects(usersMap);
   }, [dataProjects]);
