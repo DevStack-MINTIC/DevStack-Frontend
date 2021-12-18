@@ -128,7 +128,7 @@ const Projects = () => {
     <>
       <div className="container">
         <h1 className="my-3">Proyectos</h1>
-        { !loadingInscription && (
+        { !loadingInscription && !loadingProjects && (
           <MaterialTable
             title=""
             columns={columns}
